@@ -41,8 +41,8 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ${{ vars.DOCKER_USER}}/feedback-app:${{ github.sha }}
-            -t ${{ vars.DOCKER_USER}}/feebdack-app:latest
+            -t ${{ vars.DOCKER_USER}}/feedback-app:${{ github.sha }} \
+            -t ${{ vars.DOCKER_USER}}/feebdack-app:latest \
             .
       - name: Push Docker image
         run: |
