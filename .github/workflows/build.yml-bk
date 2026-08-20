@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r app/requirements.txt
+          pip install flake8
+
+      - name: Run lint
+        run: |
+          flake8 app/
+
+      - name: Build Docker image
+        run: |
+          docker build -t feedback-forge:${{ github.run_number }} .
+      
+      - name: List Docker images
+        run: |
+          docker images

@@ -1,0 +1,98 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+          pip install flake8
+
+      - name: Run flake8
+        run: |
+          flake8 app/
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ vars.DOCKER_USERNAME }}/feedback-forge:${{ github.sha }} \
+            -t ${{ vars.DOCKER_USERNAME }}/feedback-forge:latest \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ vars.DOCKER_USERNAME }}/feedback-forge:${{ github.sha }}
+          docker push ${{ vars.DOCKER_USERNAME }}/feedback-forge:latest
+
+      - name: List Docker images
+        run: |
+          docker images
+
+
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+
+    needs: build
+
+    # Deploy only after a successful push to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Pull application image
+        run: |
+          docker pull ${{ vars.DOCKER_USERNAME }}/feedback-forge:${{ github.sha }}
+
+      - name: Start application
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+        run: |
+          docker compose up -d
+
+      - name: Show running containers
+        run: |
+          docker compose ps
+
+      - name: Show application logs
+        run: |
+          docker compose logs --tail=50
