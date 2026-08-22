@@ -47,5 +47,5 @@ volumes:
     driver: local
 
 networks:
-  feedback-network:
+  pki-feedback-network:
     driver: bridge
