@@ -25,7 +25,7 @@ services:
 
   # Flask Application
   app:
-    image: ${DOCKER_USER}/feedback-forge:${IMAGE_TAG}
+    image: ${DOCKER_USER}/feedback-app:${IMAGE_TAG}
     container_name: feedback-app
     environment:
       DB_HOST: postgres
