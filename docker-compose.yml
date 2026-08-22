@@ -34,7 +34,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-secretpassword}
       FLASK_ENV: ${FLASK_ENV:-production}
     ports:
-      - "5000:5000"
+      - "8099:5000"
     depends_on:
       postgres:
         condition: service_healthy
