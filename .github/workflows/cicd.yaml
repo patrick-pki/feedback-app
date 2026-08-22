@@ -71,7 +71,7 @@ jobs:
 
        - name: Pull application docker image
          run: |
-           sudo docker pull ${{ vars.DOCKER_USER}}/feedback-app:${{ github.sha }}
+           docker pull ${{ vars.DOCKER_USER}}/feedback-app:${{ github.sha }}
 
        - name: Start application
          env:
